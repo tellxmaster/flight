@@ -289,7 +289,7 @@ import { ALL_AIRPORTS } from "../consts";
       "duration-300"
     );
 
-    const airlineLogoUrl = `/public/${flight.itineraries[0].segments[0].carrierCode}.png`;
+    const airlineLogoUrl = `public/${flight.itineraries[0].segments[0].carrierCode}.png`;
     const lastItinerary = flight.itineraries[flight.itineraries.length - 1];
     const lastSegment =
       lastItinerary.segments[lastItinerary.segments.length - 1];
