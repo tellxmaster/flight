@@ -1,6 +1,6 @@
-import type { TokenResponse } from "@interfaces/TokenResponse";
+import type { TokenResponse } from "../interfaces/TokenResponse";
 import { cache } from "./cache";
-import type { CacheItem } from "@interfaces/CacheItem";
+import type { CacheItem } from "../interfaces/CacheItem";
 
 let cachedToken: TokenResponse = {
   access_token: "",

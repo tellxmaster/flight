@@ -1,6 +1,6 @@
 // utils/cache.ts
 
-import type { CacheItem } from "@interfaces/CacheItem";
+import type { CacheItem } from "../interfaces/CacheItem";
 
 class Cache {
   private store: Record<string, CacheItem> = {};
