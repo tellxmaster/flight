@@ -1,7 +1,8 @@
 import { defineConfig } from "astro/config";
 import tailwind from "@astrojs/tailwind";
 import dotenv from "dotenv";
-import vercel from "@astrojs/vercel/serverless";
+import netlify from "@astrojs/netlify";
+
 dotenv.config();
 
 // https://astro.build/config
@@ -12,5 +13,5 @@ export default defineConfig({
     AMADEUS_API_SECRET: process.env.AMADEUS_API_SECRET,
   },
   output: "server",
-  adapter: vercel(),
+  adapter: netlify(),
 });
