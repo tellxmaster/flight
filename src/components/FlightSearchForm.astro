@@ -1,0 +1,395 @@
+---
+import "@astrojs/tailwind";
+import "./FlightSearchForm.css";
+import AirportsDataList from "./AirportsDataList.astro";
+import { ALL_AIRPORTS } from "@consts";
+---
+
+<div class="bg-white p-4 shadow-lg rounded-lg mx-auto my-8 max-w-7xl">
+  <form
+    class="flex flex-col lg:flex-row items-center justify-between space-y-4 lg:space-y-0 lg:space-x-4"
+    autocomplete="off"
+  >
+    <!-- Radio buttons para tipo de viaje -->
+    <div class="w-full lg:w-75 flex space-x-4 items-center">
+      <!-- Solo ida -->
+      <label class="inline-flex items-center">
+        <input
+          type="radio"
+          name="tripType"
+          value="oneWay"
+          class="form-radio text-green-500"
+          checked
+        />
+        <span class="ml-2">One way</span>
+      </label>
+      <!-- Ida y vuelta -->
+      <label class="inline-flex items-center">
+        <input
+          type="radio"
+          name="tripType"
+          value="roundTrip"
+          class="form-radio text-green-500"
+        />
+        <span class="ml-2">Round trip</span>
+      </label>
+    </div>
+
+    <!-- Input de origen -->
+    <AirportsDataList placeholder="Origin (e.g. Quito UIO)" name="origin" />
+
+    <!-- Input de destino -->
+    <AirportsDataList placeholder="Destination" name="destination" />
+
+    <!-- Selector de fecha de ida -->
+    <div class="w-full lg:flex-grow">
+      <input
+        type="date"
+        name="outgoing_date"
+        class="w-full px-4 py-2 border rounded-md"
+      />
+    </div>
+
+    <!-- Selector de fecha de vuelta -->
+    <div class="w-full lg:flex-grow" id="returnDateWrapper">
+      <input
+        type="date"
+        name="return_date"
+        class="w-full px-4 py-2 border rounded-md"
+      />
+    </div>
+
+    <!-- Botón de búsqueda -->
+    <button
+      type="submit"
+      class="w-full lg:w-auto px-6 py-2 text-white bg-black rounded-md hover:bg-gray-800"
+      >Search</button
+    >
+  </form>
+  <div id="fullScreenLoader" class="loader-backdrop hidden">
+    <div class="loader"></div>
+  </div>
+</div>
+<div class="filters mx-auto my-8 max-w-7xl" id="filtersAndSortControls">
+  <div class="slider">
+    <input
+      type="number"
+      class="price-input"
+      placeholder="0"
+      name="minPrice"
+      id="minPrice"
+    />
+
+    <div class="slider-container">
+      <input
+        type="range"
+        class="min-range"
+        min="0"
+        max="10000"
+        value="2500"
+        step="1"
+      />
+      <input
+        type="range"
+        class="max-range"
+        min="0"
+        max="10000"
+        value="7500"
+        step="1"
+      />
+      <div class="bar">
+        <div class="progress"></div>
+      </div>
+    </div>
+
+    <input
+      type="number"
+      class="price-input"
+      placeholder="2000"
+      name="maxPrice"
+      id="maxPrice"
+    />
+  </div>
+  <div class="sort-select-container">
+    <label for="sortSelect" class="text-dark">Sort by:</label>
+    <select id="sortSelect" class="sort-select">
+      <option value="priceAsc">Cheaper to more expensive</option>
+      <option value="priceDesc">More expensive to cheaper</option>
+      <option value="durationAsc">Shorter duration</option>
+      <option value="durationDesc">Longer duration</option>
+    </select>
+  </div>
+</div>
+
+<div id="searchResults" class="mt-8"></div>
+
+<script define:vars={{ ALL_AIRPORTS }}>
+  const roundTripRadio = document.querySelector(
+    'input[name="tripType"][value="roundTrip"]'
+  );
+  const oneWayRadio = document.querySelector(
+    'input[name="tripType"][value="oneWay"]'
+  );
+  const returnDateWrapper = document.getElementById("returnDateWrapper");
+  const returnDateInput = document.getElementById("return");
+  const rangeInput = document.querySelectorAll(".slider-container input");
+  const minPriceInput = document.getElementById("minPrice");
+  const maxPriceInput = document.getElementById("maxPrice");
+  const progress = document.querySelector(".bar .progress");
+  const form = document.querySelector("form");
+  const submitButton = form.querySelector("button[type='submit']");
+  const fullScreenLoader = document.getElementById("fullScreenLoader");
+  const sortSelect = document.getElementById("sortSelect");
+  const resultsContainer = document.getElementById("searchResults");
+  const filtersAndSortControls = document.getElementById(
+    "filtersAndSortControls"
+  );
+  let allFlights = [];
+  let priceGap = 1000;
+
+  // Init Components
+  document.addEventListener("DOMContentLoaded", () => {
+    //Control del slider
+    filtersAndSortControls.style.display = "none";
+    rangeInput.forEach((input) => {
+      input.addEventListener("input", (e) => {
+        let minVal = parseInt(rangeInput[0].value);
+        let maxVal = parseInt(rangeInput[1].value);
+
+        if (maxVal - minVal < priceGap) {
+          if (e.target.className === "min-range") {
+            rangeInput[0].value = maxVal - priceGap;
+          } else {
+            rangeInput[1].value = minVal + priceGap;
+          }
+        } else {
+          minPriceInput.value = minVal;
+          maxPriceInput.value = maxVal;
+          progress.style.left = (minVal / rangeInput[0].max) * 100 + "%";
+          progress.style.right = 100 - (maxVal / rangeInput[1].max) * 100 + "%";
+        }
+        updateFilteredResults();
+      });
+    });
+
+    sortSelect.addEventListener("change", updateFilteredResults);
+
+    // Date return visibility control
+    function updateReturnDateVisibility() {
+      if (oneWayRadio && oneWayRadio.checked) {
+        returnDateWrapper.style.display = "none";
+      } else {
+        returnDateWrapper.style.display = "block";
+      }
+    }
+
+    if (roundTripRadio && oneWayRadio) {
+      roundTripRadio.addEventListener("change", updateReturnDateVisibility);
+      oneWayRadio.addEventListener("change", updateReturnDateVisibility);
+      updateReturnDateVisibility();
+    }
+  });
+
+  form.addEventListener("submit", async (event) => {
+    event.preventDefault();
+
+    let isAnyFieldEmpty = false;
+    const formData = new FormData(form);
+
+    // Validar campos
+    for (let [name, value] of formData.entries()) {
+      if (name !== "return_date" && (value === "" || value === undefined)) {
+        isAnyFieldEmpty = true;
+        break;
+      }
+    }
+
+    if (isAnyFieldEmpty) {
+      alert("All fields are required");
+      return;
+    }
+
+    fullScreenLoader.classList.remove("hidden");
+    submitButton.disabled = true;
+
+    // Flight search API call
+    try {
+      const response = await fetch("/api/searchFlights.json", {
+        method: "POST",
+        body: formData,
+      });
+
+      if (!response.ok) {
+        throw new Error(`Error: ${response.status}`);
+      }
+
+      const results = await response.json();
+
+      allFlights = results;
+
+      updateFilteredResults();
+    } catch (error) {
+      console.error("Error fetching flight data:", error);
+      alert("Error fetching flight, reload and Try again :)", error);
+    } finally {
+      fullScreenLoader.classList.add("hidden");
+      submitButton.disabled = false;
+    }
+  });
+
+  // Auxiliar functions
+
+  function convertDurationToMinutes(duration) {
+    const matches = duration.match(/(\d+)H(\d+)M/);
+    if (!matches) return 0;
+    const hours = parseInt(matches[1], 10);
+    const minutes = parseInt(matches[2], 10);
+    return hours * 60 + minutes;
+  }
+
+  const getAirportNameByIata = (iataCode) => {
+    const airport = ALL_AIRPORTS.find((airport) => airport.iata === iataCode);
+    return airport ? airport.name : "Unknown Airport";
+  };
+
+  function formatDate(fechaISO) {
+    const fecha = new Date(fechaISO);
+
+    const opciones = {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: true,
+    };
+
+    const fechaFormateada = new Intl.DateTimeFormat("es-ES", opciones).format(
+      fecha
+    );
+
+    return fechaFormateada;
+  }
+
+  function createFlightCard(flight) {
+    const flightElement = document.createElement("div");
+    flightElement.classList.add(
+      "p-4",
+      "mx-auto",
+      "my-8",
+      "max-w-7xl",
+      "border",
+      "border-gray-200",
+      "rounded-lg",
+      "mb-4",
+      "shadow",
+      "bg-white",
+      "hover:bg-gray-50",
+      "transition-all",
+      "duration-300"
+    );
+
+    const airlineLogoUrl = `public/${flight.itineraries[0].segments[0].carrierCode}.png`;
+    const lastItinerary = flight.itineraries[flight.itineraries.length - 1];
+    const lastSegment =
+      lastItinerary.segments[lastItinerary.segments.length - 1];
+
+    const escalas = flight.itineraries
+      .map((itinerary, index) =>
+        itinerary.segments
+          .map(
+            (segment) =>
+              `${segment.departureIataCode} -> ${segment.arrivalIataCode}`
+          )
+          .join("  | ")
+      )
+      .join(" | ");
+
+    flightElement.innerHTML = `
+    <div class="flex flex-col">
+      <div class="flex justify-end">
+        <div class="text-lg text-gray-900 font-semibold"><span class="price text-indigo-600">${flight.priceTotal} ${flight.currency}</span></div>
+      </div>
+      <div class="flex flex-col md:flex-row items-center mt-2">
+        <img src="${airlineLogoUrl}" alt="Logo Aerolinea" class="w-32 h-32 object-contain mr-4" onerror="this.onerror=null;this.src='public/default.png';">
+        <div>
+          <div class="text-gray-700">Origin: <span class="font-semibold">${getAirportNameByIata(flight.itineraries[0].segments[0].departureIataCode)} (${flight.itineraries[0].segments[0].departureIataCode})</span></div>
+          <div class="text-gray-700">Destination: <span class="font-semibold">${getAirportNameByIata(lastSegment.arrivalIataCode)} (${lastSegment.arrivalIataCode})</span></div>
+          <div class="text-gray-700">Departure: <span class="font-semibold">${formatDate(flight.itineraries[0].segments[0].departureAt)}</span></div>
+          <div class="text-gray-700">Arrival: <span class="font-semibold">${formatDate(lastSegment.arrivalAt)}</span></div>
+          <div class="text-gray-700">Duration: <span class="duration font-semibold">${flight.itineraries[0].duration}</span></div>
+        </div>
+      </div>
+      <div class="text-xs text-right mt-2"><strong>Scales (${flight.itineraries.reduce((acc, cur) => acc + cur.segments.length - 1, 0)}):</strong> ${escalas}</div>
+    </div>
+  `;
+
+    return flightElement;
+  }
+
+  function sortFlights(flights, sortBy) {
+    switch (sortBy) {
+      case "priceAsc":
+        return flights.sort(
+          (a, b) => parseFloat(a.priceTotal) - parseFloat(b.priceTotal)
+        );
+      case "priceDesc":
+        return flights.sort(
+          (a, b) => parseFloat(b.priceTotal) - parseFloat(a.priceTotal)
+        );
+      case "durationAsc":
+        return flights.sort(
+          (a, b) =>
+            convertDurationToMinutes(a.itineraries[0].duration) -
+            convertDurationToMinutes(b.itineraries[0].duration)
+        );
+      case "durationDesc":
+        return flights.sort(
+          (a, b) =>
+            convertDurationToMinutes(b.itineraries[0].duration) -
+            convertDurationToMinutes(a.itineraries[0].duration)
+        );
+      default:
+        return flights;
+    }
+  }
+
+  function updateFilteredResults() {
+    const minPrice = parseInt(minPriceInput.value, 10) || 0;
+    const maxPrice = parseInt(maxPriceInput.value, 10) || 10000;
+    const sortBy = sortSelect.value; // Obtiene el criterio de ordenación seleccionado
+
+    let filteredFlights = allFlights.filter((flight) => {
+      const price = parseFloat(flight.priceTotal);
+      return price >= minPrice && price <= maxPrice;
+    });
+
+    // Ordena los vuelos filtrados según el criterio seleccionado
+    filteredFlights = sortFlights(filteredFlights, sortBy);
+
+    resultsContainer.innerHTML = "";
+    if (filteredFlights.length === 0) {
+      const noResultsMessage = document.createElement("div");
+      noResultsMessage.textContent =
+        "No hay resultados disponibles para los criterios seleccionados.";
+      noResultsMessage.classList.add(
+        "p-4",
+        "mx-auto",
+        "my-10",
+        "bg-white",
+        "rounded",
+        "text-center",
+        "max-w-7xl",
+        "text-gray-600"
+      );
+
+      resultsContainer.appendChild(noResultsMessage);
+    } else {
+      filteredFlights.forEach((flight) => {
+        const flightCard = createFlightCard(flight); // Asume que la función createFlightCard ya está definida
+        resultsContainer.appendChild(flightCard);
+      });
+      filtersAndSortControls.style.display = "flex";
+    }
+  }
+</script>

@@ -1,0 +1,132 @@
+.filters {
+  display: flex;
+  opacity: 1;
+  justify-content: space-between;
+}
+.visible {
+  opacity: 1;
+}
+.loader-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.loader {
+  border: 5px solid #f3f3f3;
+  border-radius: 50%;
+  border-top: 5px solid #3498db;
+  width: 50px;
+  height: 50px;
+  animation: spin 2s linear infinite;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+.hidden {
+  display: none;
+}
+
+.sort-select-container {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+.sort-select {
+  margin-left: 0.5rem;
+  padding: 0.5rem;
+  border: 1px solid #ccc;
+  border-radius: 0.25rem;
+}
+
+/* Slider */
+.price-input {
+  padding: 0.5rem;
+  border: 1px solid #ccc;
+  border-radius: 0.25rem;
+  max-width: 70px;
+  text-align: center;
+}
+
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+}
+
+.slider {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+}
+
+.slider-container {
+  position: relative;
+
+  width: 200px; /* Ajusta este valor según tus necesidades */
+}
+
+.slider-container input[type="range"] {
+  -webkit-appearance: none; /* Remueve el estilo predeterminado */
+  appearance: none;
+  width: 100%;
+  height: 10px;
+  background: transparent;
+  position: absolute; /* Superpone los sliders */
+}
+
+/* Estilos para la barra del slider */
+.slider-container input[type="range"]::-webkit-slider-runnable-track {
+  background: none;
+  border-radius: 5px;
+}
+
+.slider-container {
+  pointer-events: none;
+}
+
+/* Estilos para el thumb (el control que deslizas) */
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 15px;
+  height: 15px;
+  background: #4285f4;
+  cursor: pointer;
+  pointer-events: auto;
+  border-radius: 50%;
+  margin-top: -5px;
+}
+
+.bar {
+  height: 5px;
+  background-color: #ddd;
+  border-radius: 5px;
+  margin: 0 10px;
+  position: relative;
+  z-index: -1;
+}
+
+.bar .progress {
+  height: 5px;
+  background-color: #4285f4;
+  border-radius: 5px;
+  left: 25%;
+  right: 25%;
+  position: absolute;
+}

@@ -1,0 +1,113 @@
+---
+import { AIRPORT_CODES } from "@consts";
+import type { AirportSearchProps } from "@interfaces/AirportSearchProps";
+
+const { placeholder, name } = Astro.props as AirportSearchProps;
+---
+
+<div class="w-full lg:flex-grow relative">
+  <input
+    type="text"
+    placeholder={placeholder}
+    class="w-full px-4 py-2 border rounded-md"
+    id={`${name}SearchInput`}
+    autocomplete="off"
+  />
+  <input type="hidden" name={`${name}_code`} id={`${name}Code`} />
+  <ul
+    id={`${name}SearchResults`}
+    class="absolute z-10 w-full bg-white border rounded-md"
+  >
+  </ul>
+</div>
+<script define:vars={{ AIRPORT_CODES }}>
+  document.addEventListener("DOMContentLoaded", () => {
+    // Función para inicializar el comportamiento de búsqueda para un componente específico
+    function initializeAirportSearch(name) {
+      const searchInput = document.getElementById(`${name}SearchInput`);
+      const searchResults = document.getElementById(`${name}SearchResults`);
+      const airportCodeInput = document.getElementById(`${name}Code`);
+      let currentIndex = -1;
+
+      searchResults.style.display = "none";
+
+      function clearSelection() {
+        searchResults.innerHTML = "";
+        currentIndex = -1;
+      }
+
+      function updateSelection() {
+        const items = searchResults.querySelectorAll("li");
+        if (items[currentIndex]) {
+          searchInput.value = items[currentIndex].getAttribute("data-name");
+          airportCodeInput.value =
+            items[currentIndex].getAttribute("data-code");
+          clearSelection();
+        }
+      }
+
+      searchInput.addEventListener("input", (e) => {
+        searchResults.style.display = "";
+        const searchTerm = e.target.value.toLowerCase();
+        const filteredAirports = AIRPORT_CODES.filter(
+          (airport) =>
+            airport.city.toLowerCase().includes(searchTerm) ||
+            airport.country.toLowerCase().includes(searchTerm) ||
+            airport.name.toLowerCase().includes(searchTerm) ||
+            airport.code.toLowerCase().includes(searchTerm)
+        );
+
+        clearSelection();
+
+        if (!searchTerm) return;
+
+        filteredAirports.forEach((airport) => {
+          const li = document.createElement("li");
+          li.setAttribute("data-name", airport.name);
+          li.setAttribute("data-code", airport.code);
+          li.innerHTML = `<strong>${airport.city}, ${airport.country}</strong> <span class="text-xs text-white bg-blue-500 px-2 py-1 rounded-full">${airport.code}</span> <small>(${airport.name})</small>`;
+          li.classList.add(
+            "px-4",
+            "py-2",
+            "hover:bg-gray-100",
+            "cursor-pointer"
+          );
+
+          li.addEventListener("click", () => {
+            searchInput.value = airport.name;
+            airportCodeInput.value = airport.code;
+            clearSelection();
+          });
+
+          searchResults.appendChild(li);
+        });
+      });
+
+      searchInput.addEventListener("keydown", (e) => {
+        const items = searchResults.querySelectorAll("li");
+        if (e.key === "ArrowDown" && currentIndex < items.length - 1)
+          currentIndex++;
+        else if (e.key === "ArrowUp" && currentIndex > 0) currentIndex--;
+        else if (e.key === "Enter") {
+          e.preventDefault();
+          updateSelection();
+        }
+
+        items.forEach((item, index) => {
+          item.classList.toggle("bg-gray-100", index === currentIndex);
+        });
+      });
+
+      searchResults.addEventListener("click", (e) => {
+        if (e.target.tagName === "LI") {
+          searchInput.value = e.target.getAttribute("data-name");
+          airportCodeInput.value = e.target.getAttribute("data-code");
+          clearSelection();
+        }
+      });
+    }
+
+    initializeAirportSearch("origin");
+    initializeAirportSearch("destination");
+  });
+</script>
