@@ -4,9 +4,7 @@
     "strictNullChecks": true,
     "baseUrl": "C:/Users/USER/Documents/Workspace/Java/flight",
     "paths": {
-      "@*": [
-        "src/*"
-      ]
+      "@*": ["src/*"]
     },
     "jsx": "react-jsx",
     "jsxImportSource": "preact"

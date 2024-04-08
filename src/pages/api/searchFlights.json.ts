@@ -1,5 +1,5 @@
-import { fetchNewToken, isTokenExpired } from "@utils/authToken";
-import { cache } from "@utils/cache";
+import { fetchNewToken, isTokenExpired } from "../../utils/authToken";
+import { cache } from "../../utils/cache";
 import type { APIRoute } from "astro";
 
 export const POST: APIRoute = async ({ request }) => {
