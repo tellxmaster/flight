@@ -1,5 +1,5 @@
 export const APP_NAME = "FlyFinder";
-export const LOGO_URL = "/public/logo.png";
+export const LOGO_URL = "../public/logo.png";
 export const NAV_LINKS = [{ href: "/", text: "Welcome!" }];
 
 export const AIRPORT_CODES = [
