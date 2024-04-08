@@ -1,6 +1,5 @@
 html {
   font-family: system-ui, sans-serif;
-  background: #13151a url("public/backgroud3.jpg");
   background-size: cover;
   background-repeat: no-repeat;
   background-attachment: fixed;
@@ -15,7 +14,7 @@ html {
   left: 0;
   right: 0;
   bottom: 0;
-  background: url("public/backgroud3.jpg") no-repeat center center;
+  background: url("../../public/backgroud3.jpg") no-repeat center center;
   background-size: cover;
   filter: blur(8px);
   z-index: -1;
