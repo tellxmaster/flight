@@ -1,6 +1,6 @@
 # Third exercise UI flights
 
-This exercise was generated with (Astro Framework)[https://astro.build], to execute it take into account the API KEYS (AMADEUS_API_KEY & AMADEUS_API_SECRET) necessary to execute, you can obtain them in the official page of (AmadeusAPI)[https://developers.amadeus.com/get-started/get-started-with-self-service-apis-335], or you can use the ones attached in the e-mail.
+This exercise was generated with [Astro Framework](https://astro.build), to execute it take into account the API KEYS (AMADEUS_API_KEY & AMADEUS_API_SECRET) necessary to execute, you can obtain them in the official page of [AmadeusAPI](https://developers.amadeus.com/get-started/get-started-with-self-service-apis-335), or you can use the ones attached in the e-mail.
 
 Best Rewards
 
@@ -8,7 +8,7 @@ Elias
 
 ## Try
 
-You can view a live demo at (FlyFinder)[https://tellxmaster.com]
+You can view a live demo at [FlyFinder](https://flight-v2.netlify.app)
 
 ## Set-Up
 
