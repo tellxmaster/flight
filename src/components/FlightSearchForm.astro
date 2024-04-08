@@ -311,7 +311,7 @@ import { ALL_AIRPORTS } from "../consts";
         <div class="text-lg text-gray-900 font-semibold"><span class="price text-indigo-600">${flight.priceTotal} ${flight.currency}</span></div>
       </div>
       <div class="flex flex-col md:flex-row items-center mt-2">
-        <img src="${airlineLogoUrl}" alt="Logo Aerolinea" class="w-32 h-32 object-contain mr-4" onerror="this.onerror=null;this.src='public/default.png';">
+        <img src="${airlineLogoUrl}" alt="Logo Aerolinea" class="w-32 h-32 object-contain mr-4" onerror="this.onerror=null;this.src='images/default.png';">
         <div>
           <div class="text-gray-700">Origin: <span class="font-semibold">${getAirportNameByIata(flight.itineraries[0].segments[0].departureIataCode)} (${flight.itineraries[0].segments[0].departureIataCode})</span></div>
           <div class="text-gray-700">Destination: <span class="font-semibold">${getAirportNameByIata(lastSegment.arrivalIataCode)} (${lastSegment.arrivalIataCode})</span></div>
