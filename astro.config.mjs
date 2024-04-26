@@ -12,6 +12,6 @@ export default defineConfig({
     AMADEUS_API_KEY: process.env.AMADEUS_API_KEY,
     AMADEUS_API_SECRET: process.env.AMADEUS_API_SECRET,
   },
-  output: "hybrid",
+  output: "server",
   adapter: netlify(),
 });
